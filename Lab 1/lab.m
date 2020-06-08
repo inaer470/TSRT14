@@ -1,6 +1,6 @@
 clear all
 %% Task 1
-load('/Users/Ina/Desktop/TSRT14 -LAB/Lab1/SFlab1-data/calibration.mat');
+load('calibration.mat');
 % Remove the second mic
 nr_of_mics = 7;
 tphat(:,2) = [];
@@ -31,7 +31,7 @@ end
 clear tphat;
 clear rhat;
 
-load('/Users/Ina/Desktop/TSRT14 -LAB/Lab1/SFlab1-data/setup1.mat');
+load('setup1.mat');
 % Remove the second mic
 tphat(:,2) = [];
 
@@ -127,88 +127,88 @@ end
 
 %% task 5 d) TDOA2
 
-% % Get measurements for TDOA2 using function 
-% y = y_TDOA2(rhat, mic_locations);
-% 
-% % Set the start position to a position in the middle
-% sm_TDOA2.x0 = [x0];
-% 
-% for i = 1:length(rhat)
-%     % Use estimate to estimate the position
-%     [xhat2, shat] = estimate(sm_TDOA2, y(i,:));
-%     
-%     %Store the estimated position
-%     estimated_pos(:,i) = xhat2.x0(1:2);
-%     sm_TDOA2.x0 = [xhat2.x0(1:2)];
-%     %plot(xhat2, 'conf', 90)
-%     %hold on
-% end
-% 
-% SFlabCompEstimGroundTruth(estimated_pos, mic_locations);
-% set(gca, 'xTickLabel', []);
-% set(gca, 'yTickLabel', []);
+% Get measurements for TDOA2 using function 
+y = y_TDOA2(rhat, mic_locations);
+
+% Set the start position to a position in the middle
+sm_TDOA2.x0 = [x0];
+
+for i = 1:length(rhat)
+    % Use estimate to estimate the position
+    [xhat2, shat] = estimate(sm_TDOA2, y(i,:));
+    
+    %Store the estimated position
+    estimated_pos(:,i) = xhat2.x0(1:2);
+    sm_TDOA2.x0 = [xhat2.x0(1:2)];
+    %plot(xhat2, 'conf', 90)
+    %hold on
+end
+
+SFlabCompEstimGroundTruth(estimated_pos, mic_locations);
+set(gca, 'xTickLabel', []);
+set(gca, 'yTickLabel', []);
 
 %% Task 6 a 
-% % Load workspace from task 5 b
-% load('artificial_measurments_sensitive.mat') 
+% Load workspace from task 5 b
+load('artificial_measurments_sensitive.mat') 
+
+z = estimated_pos;
+
+% Change motion model (cv2D or ca2D)
+m = exlti('cv2D');
+%m = exlti('ca2D');
+
+% Improving the filter
+m.Q = 1 * m.Q;
+
+y = sig(z');
+% Apply the Kalman filter
+xhat_TDOA1 = kalman(m, y);
+
+%  xplot2(xhat_TDOA1, z, 'conf', 99);
+% Plot the confidence bounds
+% xplot(xhat_TDOA1, sig(z).y, 'conf', 99);
 % 
-% z = estimated_pos;
-% 
-% % Change motion model (cv2D or ca2D)
-% m = exlti('cv2D');
-% %m = exlti('ca2D');
-% 
-% % Improving the filter
-% m.Q = 1 * m.Q;
-% 
-% y = sig(z');
-% % Apply the Kalman filter
-% xhat_TDOA1 = kalman(m, y);
-% 
-% %  xplot2(xhat_TDOA1, z, 'conf', 99);
-% % Plot the confidence bounds
-% % xplot(xhat_TDOA1, sig(z).y, 'conf', 99);
-% % 
-% % Plot the trajectory 
-% SFlabCompEstimGroundTruth(xhat_TDOA1.y', mic_locations);
-% title('Estimated trajectory for CV with KF, disturbed positions')
-% set(gca, 'xTickLabel', []);
-% set(gca, 'yTickLabel', []);
+% Plot the trajectory 
+SFlabCompEstimGroundTruth(xhat_TDOA1.y', mic_locations);
+title('Estimated trajectory for CV with KF, disturbed positions')
+set(gca, 'xTickLabel', []);
+set(gca, 'yTickLabel', []);
 
 %% Task 6 b
-% 
-% 
-% y = y_TDOA2(rhat, mic_locations);
-% 
-% % Change motion model (cv2D or ca2D)
-% m = exmotion('cv2D');
-% %m = exmotion('ca2D');
-% 
-% 
-% % Combine the motion and sensor models
-% m1 = addsensor(m, sm_TDOA2);
-% 
-% % Improving the filter
-% m1.pv = 0.1 * m1.pv;
-% m1.pe = 10* m1.pe;
-% %m1.x0 = [x0 0.1 0.1 0 0]; for ca
-% m1.x0 = [x0 0.1 0.1];
-% 
-% % Apply the extended Kalman filter
-% xhat_TDOA2 = ekf(m1, y);
-% 
-% 
-% % xplot(xhat_TDOA1, sig(z).y, 'conf', 99);
-% 
-% 
-% % Plot the trajectory 
-% SFlabCompEstimGroundTruth(xhat_TDOA2.x(:,1:2)', mic_locations);
-% set(gca, 'xTickLabel', []);
-% set(gca, 'yTickLabel', []);
-% 
-% % Plot trajextories for both TDOA1 and TDOA2 
-% xplot2(xhat_TDOA2(1:50,1:2), xhat_TDOA1(1:50,:));
-% 
-% title('Estimated trajectory using motion model CV')
-% xlabel('Meter (m)')
-% ylabel('Meter (m)')
+
+
+y = y_TDOA2(rhat, mic_locations);
+
+% Change motion model (cv2D or ca2D)
+m = exmotion('cv2D');
+%m = exmotion('ca2D');
+
+
+% Combine the motion and sensor models
+m1 = addsensor(m, sm_TDOA2);
+
+% Improving the filter
+m1.pv = 0.1 * m1.pv;
+m1.pe = 10* m1.pe;
+%m1.x0 = [x0 0.1 0.1 0 0]; for ca
+m1.x0 = [x0 0.1 0.1];
+
+% Apply the extended Kalman filter
+xhat_TDOA2 = ekf(m1, y);
+
+
+% xplot(xhat_TDOA1, sig(z).y, 'conf', 99);
+
+
+% Plot the trajectory 
+SFlabCompEstimGroundTruth(xhat_TDOA2.x(:,1:2)', mic_locations);
+set(gca, 'xTickLabel', []);
+set(gca, 'yTickLabel', []);
+
+% Plot trajextories for both TDOA1 and TDOA2 
+xplot2(xhat_TDOA2(1:50,1:2), xhat_TDOA1(1:50,:));
+
+title('Estimated trajectory using motion model CV')
+xlabel('Meter (m)')
+ylabel('Meter (m)')
